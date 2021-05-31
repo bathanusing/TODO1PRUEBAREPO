@@ -3,9 +3,11 @@ package com.todo1.hulkstore.controller;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -17,8 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.todo1.hulkstore.dto.Product;
 import com.todo1.hulkstore.entity.ProductMvDc;
-import com.todo1.hulkstore.repository.ProductMvDcRepository;
+import com.todo1.hulkstore.services.ProductServices;
 
+import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -26,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProductController {
 	
 	@Autowired
-	ProductMvDcRepository repository;
+	ProductServices services;
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
@@ -38,7 +41,7 @@ public class ProductController {
 
 	@GetMapping(value = "/productlist")
 	public String showProducts(ModelMap model) {
-		model.put("products", repository.findAll());
+		model.put("products", services.findAll());
 		return "productlist";
 	}
 
@@ -51,13 +54,13 @@ public class ProductController {
 
 	@GetMapping(value = "/delete-product")
 	public String deleteProduct(@RequestParam int id) {
-		repository.deleteById(id);
+		services.deleteByIdProduct(id);
 		return "redirect:/productlist";
 	}
 
 	@GetMapping(value = "/update-product")
-	public String showUpdateProductPage(@RequestParam int id, ModelMap model) {
-		ProductMvDc product = repository.findById(id).get();
+	public String showUpdateProductPage(@RequestParam int id, ModelMap model) throws NotFoundException {
+		ProductMvDc product = services.findByIdProduct(id);
 		model.put("product", product);
 		return "product";
 	}
@@ -69,7 +72,8 @@ public class ProductController {
 			return "product";
 		}
 		ProductMvDc productPersistent = new ProductMvDc(product);
-		repository.save(productPersistent);
+		services.saveOrUpdateProduct(productPersistent);
+		log.info("Se actualizo producto con exito");
 		return "redirect:/productlist";
 	}
 
@@ -80,8 +84,14 @@ public class ProductController {
 			return "product";
 		}
 		ProductMvDc productPersistence = new ProductMvDc(product);
-		repository.save(productPersistence);
+		services.saveOrUpdateProduct(productPersistence);
+		log.info("Se agregro producto con exito");
 		return "redirect:/productlist";
+	}
+	
+	@GetMapping(value="/findAll")
+	public ResponseEntity<List<ProductMvDc>> findAllProducts(){
+		return ResponseEntity.ok().body(services.findAll());
 	}
 
 }

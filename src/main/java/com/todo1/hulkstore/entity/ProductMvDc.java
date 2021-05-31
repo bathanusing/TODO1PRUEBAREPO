@@ -35,6 +35,7 @@ public class ProductMvDc {
 	public ProductMvDc() {}
 	
 	public ProductMvDc(Product product) {
+		this.id = product.getId();
 		this.productName = product.getProductName();
 		this.productPrice = product.getProductPrice();
 		this.productDescription = product.getProductDescription();
